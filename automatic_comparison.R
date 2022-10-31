@@ -1,7 +1,7 @@
-automatic <- function(y = y, X = X, data = data) {
+automatic_comparison <- function(y = y, X = X, data = data) {
   
   library(geepack); library(doBy); library(tidyverse); library(openxlsx); library(readxl); library(pROC)
-
+  
   conf_mat<-function(roc.obj, x=0.5){
     coords_1 <- coords(roc.obj, x = x, ret=c("tp","tn","fp","fn"))
     coords_1$pos <- coords_1$tp+coords_1$fn
@@ -31,18 +31,18 @@ automatic <- function(y = y, X = X, data = data) {
       conf_mat_list[[X_factor[i]]] <- cbind(threshold = NA,
                                             conf_mat(roc(as.formula(paste(y,"~",X_factor[i])), data = data)))
     }
-    } else {
-        for(i in 1:length(X_numeric)){
-          roc_list[[X_numeric[i]]] <- roc(as.formula(paste(y,"~",X_numeric[i])), data = data)
-          cut_list[[X_numeric[i]]] <- coords(roc_list[[i]], x=seq(0,1,0.05), ret=c("threshold","specificity","sensitivity","youden"))
-          cut_point_list[[X_numeric[i]]] <- cut_list[[X_numeric[i]]][which.max(cut_list[[X_numeric[i]]]$youden),]
-          expected_list[[X_numeric[i]]] <- c(ifelse(data[X_numeric[i]] > cut_point_list[[X_numeric[i]]]$threshold, 1, 0))
-          conf_mat_list[[X_numeric[i]]] <- cbind(threshold = cut_point_list[[X_numeric[i]]]$threshold,
-                                                 conf_mat(roc_list[[X_numeric[i]]],
-                                                          x = cut_point_list[[X_numeric[i]]]$threshold))
-      }
+  } else {
+    for(i in 1:length(X_numeric)){
+      roc_list[[X_numeric[i]]] <- roc(as.formula(paste(y,"~",X_numeric[i])), data = data)
+      cut_list[[X_numeric[i]]] <- coords(roc_list[[i]], x=seq(0,1,0.05), ret=c("threshold","specificity","sensitivity","youden"))
+      cut_point_list[[X_numeric[i]]] <- cut_list[[X_numeric[i]]][which.max(cut_list[[X_numeric[i]]]$youden),]
+      expected_list[[X_numeric[i]]] <- c(ifelse(data[X_numeric[i]] > cut_point_list[[X_numeric[i]]]$threshold, 1, 0))
+      conf_mat_list[[X_numeric[i]]] <- cbind(threshold = cut_point_list[[X_numeric[i]]]$threshold,
+                                             conf_mat(roc_list[[X_numeric[i]]],
+                                                      x = cut_point_list[[X_numeric[i]]]$threshold))
+    }
   }
-
+  
   for(i in 1:length(X_factor)) {
     expected_list[[X_factor[i]]] <- as.vector(unlist(data[,X_factor][,i]))
     conf_mat_list[[X_factor[i]]] <- cbind(threshold = NA,
