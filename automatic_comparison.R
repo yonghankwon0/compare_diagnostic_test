@@ -1,32 +1,7 @@
-library(geepack)
-library(doBy)
-library(tidyverse)
-library(openxlsx)
-library(readxl)
-library(pROC)
-
-dd<-readxl::read_xlsx("T2_myocarditis/T2_data_220210_for R.xlsx", sheet="data")
-dd$result_AI<-ifelse(rowSums(dd[,which(colnames(dd)=="S1_AI"):which(colnames(dd)=="S16_AI")], na.rm=T)>=1,1,0)
-dd$result_ref<-ifelse(rowSums(dd[,which(colnames(dd)=="S1_ref"):which(colnames(dd)=="S16_ref")],na.rm=T)>=1,1,0)
-
-data <- subset(dd,Hospital==1)
-y <- y1 <- "Disease"
-X <- X1 <- c("result_AI", "result_ref")
-
-
-
-train <- read_xlsx("meningioma/data.xlsx", sheet="TRAINING_SET (SEV)")
-train$reader1 <- ifelse(train$reader1>=3,1,0)
-train$reader2 <- ifelse(train$reader2>=3,1,0)
-
-data <- train
-y <- y1 <- "LABEL"
-X <- X1 <- c("reader1", "T1C_T2", "T2", "T1C", "reader2")
-
-################################################################################
-
 automatic <- function(y = y, X = X, data = data) {
   
+  library(geepack); library(doBy); library(tidyverse); library(openxlsx); library(readxl); library(pROC)
+
   conf_mat<-function(roc.obj, x=0.5){
     coords_1 <- coords(roc.obj, x = x, ret=c("tp","tn","fp","fn"))
     coords_1$pos <- coords_1$tp+coords_1$fn
@@ -130,7 +105,3 @@ automatic <- function(y = y, X = X, data = data) {
   
   return(list(conf_table,result_))
 }
-
-automatic(y = y1, X = X1, data = data)
-
-################################################################################
